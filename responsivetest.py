@@ -1,90 +1,65 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.chrome.service import Service
 import time
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-class RedditCrossBrowserTest:
-    def __init__(self, browser):
-        self.browser = browser
-        if browser == "chrome":
-            service = ChromeService(ChromeDriverManager().install())
-            self.driver = webdriver.Chrome(service=service)
-        elif browser == "edge":
-            service = EdgeService(EdgeChromiumDriverManager().install())
-            self.driver = webdriver.Edge(service=service)
-        else:
-            raise ValueError("Düzgün brauzer adı daxil edin: 'chrome' və ya 'edge'.")
+# Brauzer ayarları
+chrome_options = Options()
+chrome_options.add_argument("--start-maximized")
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    def test_login(self):
-        self.driver.get("https://www.reddit.com/login/")
-        time.sleep(3)
+driver.implicitly_wait(5)
+driver.get("https://www.reddit.com/")
 
-        # İstifadəçi adı və şifrəni daxil edin
-        username_field = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='username']"))
-        )
-        username_field.send_keys("nihat.rzayev1357@gmail.com")
+# Fərqli ekran ölçüləri üçün funksiyalar
+def test_responsive_view(width, height):
+    print(f"\nTesting responsivlik üçün {width}x{height} ölçüləri.")
+    driver.set_window_size(width, height)  # Pəncərə ölçüsünü təyin edir
+    time.sleep(2)
+    
+    try:
+        # Menü açılıb-açılmadığını yoxla
+        menu_button = driver.find_element(By.XPATH, '//button[@aria-label="Open navigation"]')
+        menu_button.click()
+        print(f"{width}x{height} üçün menyu düyməsi görünür və işləyir.")
+        time.sleep(2)
+    except Exception as e:
+        print(f"{width}x{height} ölçüsündə menyu düyməsi tapılmadı: {e}")
 
-        password_field = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='password']"))
-        )
-        password_field.send_keys("salam1234salam")
-        password_field.send_keys(Keys.RETURN)
+    # Popular düyməsini yoxla
+    try:
+        popular_button = driver.find_element(By.LINK_TEXT, "Popular")
+        popular_button.click()
+        print(f"{width}x{height} üçün 'Popular' düyməsi işləyir.")
+        time.sleep(2)
+    except Exception as e:
+        print(f"{width}x{height} ölçüsündə 'Popular' düyməsi tapılmadı: {e}")
 
-        time.sleep(5)
-        print(f"{self.browser} ilə giriş testi tamamlandı.")
+# Responsivlik üçün ölçülər
+responsive_sizes = [
+    (1920, 1080),  # Desktop
+    (1024, 768),   # Tablet
+    (375, 812),    # Mobil (iPhone X ölçüsü)
+]
 
-    def test_navigation(self):
-        self.driver.get("https://www.reddit.com/")
-        time.sleep(3)
+# Responsivlik Testi
+for size in responsive_sizes:
+    test_responsive_view(size[0], size[1])
 
-        # 'Popular' bölməsinə keçin
-        try:
-            popular_link = WebDriverWait(self.driver, 15).until(  # Gözləmə müddətini artırdım
-                EC.element_to_be_clickable((By.LINK_TEXT, "Popular"))
-            )
-            popular_link.click()
-            time.sleep(5)
-            print(f"{self.browser} ilə navigasiya testi tamamlandı.")
-        except Exception as e:
-            print(f"{self.browser} ilə navigasiya zamanı problem: {e}")
+# Log Out
+try:
+    profile_menu = driver.find_element(By.XPATH, '//*[@id="expand-user-drawer-button"]')
+    profile_menu.click()
+    time.sleep(2)
+    
+    logout_button = driver.find_element(By.XPATH, '//*[@id="logout-list-item"]/div')
+    logout_button.click()
+    print("Çıxış uğurla tamamlandı.")
+except Exception as e:
+    print(f"Çıxış zamanı problem: {e}")
 
-
-
-
-    def test_search(self):
-        self.driver.get("https://www.reddit.com/")
-        time.sleep(3)
-
-        # Axtarış qutusuna "Python" yazın
-        try:
-            search_box = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "input[placeholder='Search Reddit']"))
-            )
-            search_box.send_keys("Python")
-            search_box.send_keys(Keys.RETURN)
-            time.sleep(5)
-            print(f"{self.browser} ilə axtarış testi tamamlandı.")
-        except Exception as e:
-            print(f"{self.browser} ilə axtarış zamanı problem: {e}")
-
-    def quit(self):
-        self.driver.quit()
-
-# Test nümunəsi
-if __name__ == "__main__":
-    browsers = ["chrome", "edge"]  # Test üçün brauzer siyahısı
-
-    for browser in browsers:
-        print(f"\n{browser.upper()} ilə Reddit testi başlanır...")
-        reddit_test = RedditCrossBrowserTest(browser)
-        reddit_test.test_login()
-        reddit_test.test_navigation()
-        reddit_test.test_search()
-        reddit_test.quit()
+# Brauzeri bağla
+time.sleep(3)
+driver.quit()
