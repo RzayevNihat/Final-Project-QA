@@ -44,10 +44,27 @@ time.sleep(2)
 settings_button = driver.find_element(By.XPATH, '//*[@id="user-drawer-content"]/ul[3]/faceplate-tracker/li/a')
 settings_button.click()
 time.sleep(5)
+homepage=driver.find_element(By.XPATH, '//*[@id="reddit-logo"]')
+homepage.click()
+time.sleep(5)
 
 profile_menu = driver.find_element(By.XPATH, '//*[@id="expand-user-drawer-button"]')
 profile_menu.click()
 time.sleep(2)
+
+achievement_button = driver.find_element(By.XPATH, '//*[@id="user-drawer-content"]/ul[1]/faceplate-tracker[3]/li/a')
+achievement_button.click()
+time.sleep(5)
+
+profile_menu = driver.find_element(By.XPATH, '//*[@id="expand-user-drawer-button"]')
+profile_menu.click()
+time.sleep(2)
+
+darkmode=driver.find_element(By.XPATH, '//*[@id="darkmode-list-item"]/div/span[2]/span/faceplate-switch-input')
+darkmode.click()
+time.sleep(5)
+darkmode.click()
+time.sleep(5)
 # Click on the "Log out" button
 logout_button = driver.find_element(By.XPATH, '//*[@id="logout-list-item"]/div')
 logout_button.click()
